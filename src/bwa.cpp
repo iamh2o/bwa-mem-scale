@@ -47,6 +47,7 @@
 #include "kstring.h"
 #include "kvec.h"
 #include <string>
+#include <limits.h>
 
 #ifdef __cplusplus
 extern "C" {

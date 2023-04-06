@@ -58,6 +58,8 @@
 #include <pthread.h>
 #include <sched.h>
 #include <sys/time.h>
+#include <stdlib.h>
+#include <iostream>
 
 //#define DEBUG_MESSAGE
 //#define ASSERT_IN_DETAIL
@@ -93,13 +95,22 @@ static uint32_t total_hole_entry = 0;
 static uint32_t total_moved_entry = 0;
 
 
+void *safe_reallocarray(void *ptr, size_t nmemb, size_t size) {
+  if (nmemb > SIZE_MAX / size) {
+    std::cerr << "error: invalid arguments to safe_reallocarray" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  return realloc(ptr, nmemb * size);
+}
+
+
 int mode_build = 0; /* use this variable only for debugging. now, affect to "show_seed_entry()" */
 
 #define get_num_seed(start, end, len) ((end) - (start) >= (len) ? ((end) - (start) - (len) + 1) : 0)
 
 static inline void *recallocarray(void *ptr, size_t old_n, size_t new_n, size_t size)
 {
-	ptr = reallocarray(ptr, new_n, size);
+	ptr = safe_reallocarray(ptr, new_n, size);
 	if (!ptr) return ptr;
 
 	if (old_n < new_n) {
@@ -835,8 +846,8 @@ static inline int get_children_list(perfect_table_t *pt, uint32_t root_idx,
 	}
 
 	if (n > *__num_list) {
-		*__idx_list = (uint32_t *) reallocarray(*__idx_list, n, sizeof(uint32_t));
-		*__node_list = (seed_entry_t *) reallocarray(*__node_list, n, sizeof(seed_entry_t));
+		*__idx_list = (uint32_t *) safe_reallocarray(*__idx_list, n, sizeof(uint32_t));
+		*__node_list = (seed_entry_t *) safe_reallocarray(*__node_list, n, sizeof(seed_entry_t));
 		*__num_list = n;
 		assert((*__idx_list) != NULL && (*__node_list) != NULL);
 	}
